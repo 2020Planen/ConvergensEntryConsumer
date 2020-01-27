@@ -5,18 +5,21 @@
  */
 package org.consumer;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import io.smallrye.reactive.messaging.annotations.Broadcast;
+import io.smallrye.reactive.messaging.annotations.Channel;
+import io.smallrye.reactive.messaging.annotations.Emitter;
 import java.io.IOException;
 import java.time.LocalTime;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import org.apache.camel.CamelContext;
-import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.ConsumerTemplate;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.impl.DefaultCamelContext;
-import org.apache.zookeeper.common.Time;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 /**
  *
@@ -28,14 +31,26 @@ import org.eclipse.microprofile.reactive.messaging.Incoming;
     public class EntryConsumer {
         
         @Inject
+        @Channel("routing")
+        Emitter<String> outgoing;
+        
+        @Inject
         ProducerTemplate camelProducer;
         
         @Incoming("entry")
-        public void consumeEntry(String msg) throws IOException {
+        //@Outgoing("routing")
+        public void consumeEntry(String msg) throws IOException, InterruptedException, ExecutionException, TimeoutException {
             
             //Store in database
             System.out.println("Sending entry to database... Time: " + LocalTime.now());
-            camelProducer.sendBody("couchdb:http://cis-x.convergens.dk:5984/mmr?username=admin&password=password", msg);
+            CompletableFuture future = camelProducer.asyncSendBody("couchdb:http://cis-x.convergens.dk:5984/mmr?username=admin&password=password", msg);
+            System.out.println("Pre object = ");
+            Object result = future.get(5, TimeUnit.SECONDS);
+            System.out.println("after object");
+            if (future.isDone()){
+                System.out.println("result: " + result.toString());
+                outgoing.send(msg);
+            }
 /*          
             try {
                 context.addRoutes(new RouteBuilder() {
