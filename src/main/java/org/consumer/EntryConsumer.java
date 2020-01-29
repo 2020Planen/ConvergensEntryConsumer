@@ -5,7 +5,7 @@
  */
 package org.consumer;
 
-import io.smallrye.reactive.messaging.annotations.Broadcast;
+
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import java.io.IOException;
@@ -16,10 +16,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import org.apache.camel.ConsumerTemplate;
+import org.acme.ConfigJsonObject;
 import org.apache.camel.ProducerTemplate;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 /**
  *
@@ -41,36 +40,22 @@ import org.eclipse.microprofile.reactive.messaging.Outgoing;
         //@Outgoing("routing")
         public void consumeEntry(String msg) throws IOException, InterruptedException, ExecutionException, TimeoutException {
             
+            ConfigJsonObject cj = new ConfigJsonObject("entry");
+            cj.convertJsonToEntity(msg);
+            String newMsg = cj.getJsonObjectString();
+            
             //Store in database
-            System.out.println("Sending entry to database... Time: " + LocalTime.now());
-            CompletableFuture future = camelProducer.asyncSendBody("couchdb:http://cis-x.convergens.dk:5984/mmr?username=admin&password=password", msg);
-            System.out.println("Pre object = ");
-            Object result = future.get(5, TimeUnit.SECONDS);
-            System.out.println("after object");
+            System.out.println("\n------------- Sending entry to database... Time: " + LocalTime.now()+ "-------------\n");
+            CompletableFuture future = camelProducer.asyncSendBody("couchdb:http://cis-x.convergens.dk:5984/mmr?username=admin&password=password", newMsg);
+            future.get(5, TimeUnit.SECONDS);
             if (future.isDone()){
-                System.out.println("result: " + result.toString());
-                outgoing.send(msg);
+                System.out.println("\n------------- Succesfully sent to database -------------\n");
+                outgoing.send(newMsg);
+            } else {
+                System.out.println("ELSE ---------------");
+                //TODO find ud af hvad der skal ske
             }
-/*          
-            try {
-                context.addRoutes(new RouteBuilder() {
-                        
-                    @Override
-                    public void configure() throws Exception {
-                        from("kafka:entry?brokers=cis-x.convergens.dk:9092")
-                                .setBody(e -> msg)
-                                .to("couchdb:http://cis-x.convergens.dk:5984/mmr?username=admin&password=password");
-                                
-                        System.out.println("------------ adding to couch db ---------------------");
-                    }
-                });
-                context.start();
-                
-            } catch (Exception e) {
-                System.out.println(""+e);
-            } finally {
-            }
-*/
+
         }
 
     }

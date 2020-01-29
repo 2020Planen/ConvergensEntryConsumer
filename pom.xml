@@ -18,8 +18,16 @@
         <quarkus.platform.version>1.1.1.Final</quarkus.platform.version>
         <surefire-plugin.version>2.22.1</surefire-plugin.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>convergens-repository</id>
+            <name>Internet mirror for archiva.convergens.dk</name>
+            <url>http://archiva.convergens.dk:8080/repository/internal/</url>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
+            
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
@@ -30,6 +38,7 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+      
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
@@ -65,11 +74,7 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-kafka</artifactId>
-            <version>3.0.0</version>
-        </dependency>
+   
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -79,6 +84,11 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-couchdb</artifactId>
             <version>3.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.convergens.mmr</groupId>
+            <artifactId>mmr-json-information-class</artifactId>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
     <build>
