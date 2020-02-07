@@ -41,7 +41,7 @@ public class EntryConsumer {
     }
 
     @Inject
-    @Channel("exit")
+    @Channel("entry")
     Emitter<String> outgoing;
 
     @Inject
